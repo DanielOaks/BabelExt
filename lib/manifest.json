@@ -1,23 +1,29 @@
 {
-	"base": {
-		"name": "BabelExt Extension",
-		"version": "0.9", 
-		"description": "An extension created with BabelExt - www.babelext.com",
-	    "license": "GPL", 
-	    "author": "honestbleeps",
-		"progname": "babelext", 
-	    "progauthor": "honestbleeps"
-	},
-	"chrome": {
+    "base": {
+        "name": "BabelExt Extension",
+        "version": "0.9", 
+        "description": "An extension created with BabelExt - www.babelext.com",
+        "license": "GPL", 
+        "author": "honestbleeps",
+        "progname": "babelext", 
+        "progauthor": "honestbleeps", 
+        "sites": [
+            "babelext.com"
+        ]
+    },
+    "chrome": {
+        "matches": [
+            "http://babelext.com/*"
+        ]
+    }, 
+    "firefox": {
 
-	}, 
-	"firefox": {
+    }, 
+    "opera": {
 
-	}, 
-	"opera": {
-
-	}, 
-	"safari": {
-
-	}
+    }, 
+    "safari": {
+        "allowed-domains": "babelext.com", 
+        "website": "http://babelext.com"
+    }
 }
