@@ -61,3 +61,65 @@ if vars(args)['link']:
 
     if vars(args)['d']: print('    Copying bases into ' + build_dir)
     shutil.copytree('base', build_dir)
+
+
+    import codecs
+    import json
+
+    # manifest
+    file_path = 'lib' + os.sep + 'manifest.json'
+    file = codecs.open(file_path, 'r', 'utf8')
+    manifest = json.loads(file.read())
+    file.close()
+
+
+    # Chrome manifest
+    chrome_manifest = {}
+
+    chrome_manifest['name'] = manifest['base']['name']
+    chrome_manifest['version'] = manifest['base']['version']
+    chrome_manifest['description'] = manifest['base']['description']
+    chrome_manifest['content_scripts'] = [{}]
+    chrome_manifest['content_scripts'][0]['matches'] = []
+    for match in manifest['base']['sites']:
+        chrome_manifest['content_scripts'][0]['matches'].append('http://' + match + '/*')
+        chrome_manifest['content_scripts'][0]['matches'].append('https://' + match + '/*')
+    else:
+        del chrome_manifest['update_url']
+    if 'comment' in chrome_manifest['content_scripts'][0]:
+        del chrome_manifest['content_scripts'][0]['comment']
+    if 'icons_' in chrome_manifest:
+        del chrome_manifest['icons_']
+
+    # TODO: add files automagically
+
+    chrome_manifest.update(manifest['chrome'])
+
+    chrome_file = codecs.open(file_path, 'w', 'utf8')
+    chrome_file.write(json.dumps(chrome_manifest, sort_keys=True, indent=4))
+    chrome_file.close()
+
+
+    # Firefox manifest
+    firefox_manifest = {}
+
+    firefox_manifest['name'] = manifest['base']['progname']
+    firefox_manifest['fullName'] = manifest['base']['name']
+    firefox_manifest['description'] = manifest['base']['description']
+    firefox_manifest['author'] = manifest['base']['author']
+    if 'icons' in manifest['base']:
+        if 'default' in manifest['base']['icons']:
+            firefox_manifest['icon'] = manifest['base']['icons']['default']
+        if '64' in manifest['base']['icons']:
+            firefox_manifest['icon64'] = manifest['base']['icons']['64']
+    firefox_manifest['license'] = manifest['base']['license']
+    firefox_manifest['version'] = manifest['base']['version']
+
+    # TODO: add files automagically
+
+    firefox_manifest.update(manifest['firefox'])
+
+    file_path = 'build' + os.sep + 'Firefox' + os.sep + 'package.json'
+    firefox_file = codecs.open(file_path, 'w', 'utf8')
+    firefox_file.write(json.dumps(firefox_manifest, sort_keys=True, indent=4))
+    firefox_file.close()

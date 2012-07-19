@@ -12,9 +12,7 @@
         ]
     },
     "chrome": {
-        "matches": [
-            "http://babelext.com/*"
-        ]
+        
     }, 
     "firefox": {
 
