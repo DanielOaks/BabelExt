@@ -4,6 +4,7 @@ import __future__
 
 import os
 import sys
+import shutil
 
 # Argument Parsing
 
@@ -41,18 +42,13 @@ else:
 if vars(args)['link']:
     vars(args)['clean'] = True
 
-# http://code.activestate.com/recipes/552732-remove-directories-recursively/
-import shutil
-def remove_dir(path):
-    if os.path.isdir(path):
-        shutil.rmtree(path)
-
 
 # extension cleaning
 if vars(args)['clean']:
     if vars(args)['d']: print('  Cleaning ' + build_dir)
 
-    remove_dir(build_dir)
+    if os.path.isdir(build_dir):
+        shutil.rmtree(build_dir)
 
 
 # extension linking
@@ -66,14 +62,18 @@ if vars(args)['link']:
     import codecs
     import json
 
-    # manifest
+
+    # load base manifest
     file_path = 'lib' + os.sep + 'manifest.json'
     file = codecs.open(file_path, 'r', 'utf8')
     manifest = json.loads(file.read())
     file.close()
 
 
-    # Chrome manifest
+    ##
+    ## Chrome manifest
+    ##
+    if vars(args)['d']: print('    Building Chrome manifest and files into ' + build_dir + os.sep + 'Chrome')
     chrome_manifest = {}
 
     chrome_manifest['name'] = manifest['base']['name']
@@ -84,23 +84,41 @@ if vars(args)['link']:
     for match in manifest['base']['sites']:
         chrome_manifest['content_scripts'][0]['matches'].append('http://' + match + '/*')
         chrome_manifest['content_scripts'][0]['matches'].append('https://' + match + '/*')
-    else:
-        del chrome_manifest['update_url']
-    if 'comment' in chrome_manifest['content_scripts'][0]:
-        del chrome_manifest['content_scripts'][0]['comment']
-    if 'icons_' in chrome_manifest:
-        del chrome_manifest['icons_']
 
-    # TODO: add files automagically
+    if 'icons' in manifest['base']:
+        chrome_manifest['icons'] = {}
+        for size in ['16', '48', '128']:
+            if size in manifest['base']['icons']:
+                chrome_manifest['icons'][size] = manifest['base']['icons'][size]
+
+    # automagically add files
+    chrome_manifest['content_scripts'][0]['files'] = {}
+
+    for filetype in manifest['base']['files']:
+        chrome_manifest['content_scripts'][0]['files'][filetype] = []
+        for name in manifest['base']['files'][filetype]:
+            chrome_manifest['content_scripts'][0]['files'][filetype].append(name)
 
     chrome_manifest.update(manifest['chrome'])
 
+    # aaand copy the actual lib files into there
+    for filename in os.listdir('lib'):
+        if filename != 'manifest.json':
+            if vars(args)['d']: print('        Copying file ' + filename)
+            shutil.copyfile('lib' + os.sep + filename, build_dir + os.sep + 'Chrome' + os.sep + filename)
+
+    # save manifest
+    if vars(args)['d']: print('        Saving manifest')
+    file_path = build_dir + os.sep + 'Chrome' + os.sep + 'manifest.json'
     chrome_file = codecs.open(file_path, 'w', 'utf8')
     chrome_file.write(json.dumps(chrome_manifest, sort_keys=True, indent=4))
     chrome_file.close()
 
 
-    # Firefox manifest
+    ##
+    ## Firefox manifest
+    ##
+    if vars(args)['d']: print('    Building Firefox manifest and files into ' + build_dir + os.sep + 'Firefox')
     firefox_manifest = {}
 
     firefox_manifest['name'] = manifest['base']['progname']
@@ -119,6 +137,8 @@ if vars(args)['link']:
 
     firefox_manifest.update(manifest['firefox'])
 
+    # save manifest
+    if vars(args)['d']: print('        Saving manifest')
     file_path = 'build' + os.sep + 'Firefox' + os.sep + 'package.json'
     firefox_file = codecs.open(file_path, 'w', 'utf8')
     firefox_file.write(json.dumps(firefox_manifest, sort_keys=True, indent=4))

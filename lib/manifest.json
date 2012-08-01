@@ -9,10 +9,25 @@
         "progauthor": "honestbleeps", 
         "sites": [
             "babelext.com"
-        ]
+        ], 
+        "files": {
+            "js": [
+                "BabelExt.js", 
+                "extension.js"
+            ], 
+            "css": []
+        }
     },
     "chrome": {
-        
+        "background_page": "background.html",
+        "permissions": [
+            "tabs",
+            "history",
+            "notifications"
+        ]
+    }, 
+    "chrome-temp": {
+        "update_url": "http://babelext.com/update-chrome.php"
     }, 
     "firefox": {
 
